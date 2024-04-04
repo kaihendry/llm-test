@@ -1,0 +1,14 @@
+on:
+    push:
+    workflow_dispatch:
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: cpanato/gptscript-installer@main
+        - shell: bash
+          run: make
+          env:
+            OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+            GPTSCRIPT_PROVIDER_API_MISTRAL_AI_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
