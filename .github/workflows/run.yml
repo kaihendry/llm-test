@@ -10,7 +10,12 @@ jobs:
         - uses: cpanato/gptscript-installer@main
         - uses: actions/checkout@v4
         - shell: bash
-          run: make
+          name: Mistral
+          run: make mistral
+          env:
+            GPTSCRIPT_PROVIDER_API_MISTRAL_AI_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+        - shell: bash
+          name: OpenAI
+          run: make openai
           env:
             OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-            GPTSCRIPT_PROVIDER_API_MISTRAL_AI_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
