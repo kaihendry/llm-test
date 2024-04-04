@@ -9,8 +9,8 @@ list-openai-models:
 openai:
 	@for i in $$(ls -v *.gpt); \
 	do \
-		echo gptscript --model "gpt-4-turbo-preview" $$i; \
-		gptscript --model "gpt-4-turbo-preview" $$i; \
+		echo gptscript --default-model "gpt-4-turbo-preview" $$i; \
+		gptscript --default-model "gpt-4-turbo-preview" $$i; \
 	done
 
 mistral:
