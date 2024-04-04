@@ -1,4 +1,8 @@
-all: list-openai-models list-mistral-models openai mistral
+all: openai mistral
+
+openai: list-openai-models openai-gptscript
+
+mistral: list-mistral-models mistral-gptscript
 
 list-mistral-models:
 	gptscript --list-models https://api.mistral.ai/v1
@@ -6,16 +10,18 @@ list-mistral-models:
 list-openai-models:
 	gptscript --list-models
 
-openai:
+openai-gptscript:
 	@for i in $$(ls -v *.gpt); \
 	do \
-		echo gptscript --default-model "gpt-4-turbo-preview" $$i; \
-		gptscript --default-model "gpt-4-turbo-preview" $$i; \
+		gptscript --debug --default-model "gpt-4-turbo-preview" $$i; \
+		printf "\033[1mExpected answer:\033[0m\n"; \
+		cat `basename $$i .gpt`.answer; \
 	done
 
-mistral:
+mistral-gptscript:
 	@for i in $$(ls -v *.gpt); \
 	do \
-		echo gptscript --default-model "mistral-large-latest from https://api.mistral.ai/v1" $$i; \
-		gptscript --default-model "mistral-large-latest from https://api.mistral.ai/v1" $$i; \
+		gptscript --debug --default-model "mistral-large-latest from https://api.mistral.ai/v1" $$i; \
+		printf "\033[1mExpected answer:\033[0m\n"; \
+		cat `basename $$i .gpt`.answer; \
 	done

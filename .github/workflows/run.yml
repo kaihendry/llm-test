@@ -3,7 +3,8 @@ on:
     workflow_dispatch:
 
 jobs:
-    test:
+  compare:
+        name: Compares OpenAI and Mistral AI
         runs-on: ubuntu-latest
         steps:
         - uses: cpanato/gptscript-installer@main
