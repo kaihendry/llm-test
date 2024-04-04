@@ -4,7 +4,7 @@ on:
 
 jobs:
   compare:
-        name: Compares OpenAI and Mistral AI
+        name: Compares models https://docs.gptscript.ai/alternative-model-providers
         runs-on: ubuntu-latest
         steps:
         - uses: cpanato/gptscript-installer@main
