@@ -32,11 +32,12 @@ jobs:
           env:
             OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
+        
+        - name: Setup Pages
+          uses: actions/configure-pages@v1
         - name: Generate report
-          run: go run generate-report/main.go > report.html
-
-        - name: Upload report as artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: report
-            path: report.html
+          run: mkdir "_site" && go run generate-report/main.go > _site/index.html
+        - name: Upload artifact
+          uses: actions/upload-pages-artifact@v3
+        - name: Deploy to GitHub Pages
+          uses: actions/deploy-pages@v4
