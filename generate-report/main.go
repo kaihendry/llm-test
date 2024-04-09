@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
+	"io"
 	"os"
 	"time"
 )
@@ -24,40 +26,80 @@ type Answer struct {
 	Value string
 }
 
+func ReadFileToString(filePath string) (string, error) {
+	// Open the file for reading
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	// Read the file content
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+
+	// Convert bytes to string and return
+	content := string(bytes)
+	return content, nil
+}
+
 func main() {
-	generateReport(Questions{
+	qs := Questions{
 		Generated: time.Now(),
-		AItests: []AItest{
-			{
-				PromptPath: "path/to/prompt",
-				Question:   "What is the capital of France?",
-				Answers: Answers{
-					Answer{
-						Name:  "A",
-						Value: "Paris",
-					},
+	}
+
+	for i := 1; i <= 12; i++ {
+		prompt := fmt.Sprintf("%d.gpt", i)
+		question, err := ReadFileToString(prompt)
+		if err != nil {
+			panic(err)
+		}
+		answer, err := ReadFileToString(fmt.Sprintf("%d.answer", i))
+		if err != nil {
+			panic(err)
+		}
+		openaiAnswer, err := ReadFileToString(fmt.Sprintf("/tmp/%d.gpt.openai", i))
+		if err != nil {
+			panic(err)
+		}
+		mistralAnswer, err := ReadFileToString(fmt.Sprintf("/tmp/%d.gpt.mistral", i))
+		if err != nil {
+			panic(err)
+		}
+		anthropicAnswer, err := ReadFileToString(fmt.Sprintf("/tmp/%d.gpt.anthropic", i))
+		if err != nil {
+			panic(err)
+		}
+		qs.AItests = append(qs.AItests, AItest{
+			PromptPath: prompt,
+			Question:   question,
+			Answers: Answers{
+				Answer{
+					Name:  "Correct",
+					Value: answer,
+				},
+				Answer{
+					Name:  "OpenAI",
+					Value: openaiAnswer,
+				},
+				Answer{
+					Name:  "Mistral",
+					Value: mistralAnswer,
+				},
+				Answer{
+					Name:  "Anthropic",
+					Value: anthropicAnswer,
 				},
 			},
-			{
-				PromptPath: "path/to/prompt",
-				Question:   "What is the capital of England?",
-				Answers: Answers{
-					Answer{
-						Name:  "OpenAI",
-						Value: "London",
-					},
-					Answer{
-						Name:  "Mistral",
-						Value: "London-mate!",
-					},
-					Answer{
-						Name:  "Anthropic",
-						Value: "Laaahn-daaahn",
-					},
-				},
-			},
-		},
-	})
+		})
+	}
+
+	err := generateReport(qs)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func generateReport(qs Questions) error {
@@ -77,7 +119,8 @@ func generateReport(qs Questions) error {
 <p>{{.Question}}</p>
 <h1>Answers</h1>
 {{- range .Answers}}
-<p>{{.Name}}: {{.Value}}</p>
+<h3>{{.Name}}</h3>
+<blockquote>{{.Value}}</blockquote>
 {{- end}}
 {{- end}}
 <footer>

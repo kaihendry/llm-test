@@ -55,6 +55,9 @@ jobs:
           env:
             OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         
+        # debugging Warning: Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.
+        - run: ls $XDG_CACHE_HOME/gptscript || true
+
         - name: Setup Pages
           uses: actions/configure-pages@v5
         - name: Generate report
