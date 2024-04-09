@@ -14,6 +14,9 @@ permissions:
 
 jobs:
   compare:
+        environment:
+          name: github-pages
+          url: ${{ steps.deployment.outputs.page_url }}
         name: Compares models https://docs.gptscript.ai/alternative-model-providers
         runs-on: ubuntu-latest
         steps:
@@ -58,4 +61,5 @@ jobs:
         - name: Upload artifact
           uses: actions/upload-pages-artifact@v3
         - name: Deploy to GitHub Pages
+          id: deployment
           uses: actions/deploy-pages@v4
