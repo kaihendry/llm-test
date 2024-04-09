@@ -2,6 +2,16 @@ on:
     push:
     workflow_dispatch:
 
+# We try save gptscript runs to save on $$$
+env:
+  XDG_CACHE_HOME: ${{ github.workspace }}/.cache
+
+# Needed for deploying to report to Github pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   compare:
         name: Compares models https://docs.gptscript.ai/alternative-model-providers
@@ -9,6 +19,15 @@ jobs:
         steps:
         - uses: cpanato/gptscript-installer@main
         - uses: actions/checkout@v4
+
+        - run: ls $XDG_CACHE_HOME/gptscript || true
+
+        - uses: actions/cache@v4
+          id: cache
+          with:
+            path: $XDG_CACHE_HOME/gptscript
+            key: ${{ runner.os }}-${{ hashFiles('*.gpt') }}
+
         - shell: bash
           name: Mistral
           run: ./mistral.sh
@@ -31,7 +50,6 @@ jobs:
           run: cd test; ./test.sh | sh
           env:
             OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-
         
         - name: Setup Pages
           uses: actions/configure-pages@v1
