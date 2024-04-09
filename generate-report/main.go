@@ -115,7 +115,7 @@ func generateReport(qs Questions) error {
 </head>
 <body>
 {{- range .AItests }}
-<h1><a href="#{{ .PromptPath }}">{{ .PromptPath }}</a></h1>
+<h1 id="{{ .PromptPath }}"><a href="#{{ .PromptPath }}">{{ .PromptPath }}</a> question prompt</h1>
 <p>{{.Question}}</p>
 <h1>Answers</h1>
 {{- range .Answers}}

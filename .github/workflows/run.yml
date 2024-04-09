@@ -17,16 +17,15 @@ jobs:
         environment:
           name: github-pages
           url: ${{ steps.deployment.outputs.page_url }}
-        name: Compares models https://docs.gptscript.ai/alternative-model-providers
+        name: Testing models
         runs-on: ubuntu-latest
         steps:
         - uses: cpanato/gptscript-installer@main
         - uses: actions/checkout@v4
 
-        - uses: actions/cache/restore@v3
-          id: restore-cache
+        - uses: actions/cache@v4
           with:
-            path: $XDG_CACHE_HOME/gptscript
+            path: ${{ env.XDG_CACHE_HOME }}
             key: ${{ runner.os }}-${{ hashFiles('*.gpt') }}
 
         - run: ls $XDG_CACHE_HOME/gptscript || true
@@ -54,15 +53,6 @@ jobs:
           env:
             OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         
-        # debugging Warning: Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.
-        - run: ls $XDG_CACHE_HOME/gptscript || true
-
-        - uses: actions/cache/save@v3
-          id: cache
-          with:
-            path: $XDG_CACHE_HOME/gptscript
-            key:  ${{ runner.os }}-${{ hashFiles('*.gpt') }}
-
         - name: Setup Pages
           uses: actions/configure-pages@v5
         - name: Generate report
