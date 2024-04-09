@@ -109,13 +109,13 @@ func generateReport(qs Questions) error {
 <html lang=en>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://newcss.net/lite.css">
 <title>Large Language Model Test</title>
 </head>
 <body>
 {{- range .AItests }}
-<h1>Question</h1>
+<h1><a href="#{{ .PromptPath }}">{{ .PromptPath }}</a></h1>
 <p>{{.Question}}</p>
 <h1>Answers</h1>
 {{- range .Answers}}

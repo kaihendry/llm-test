@@ -23,9 +23,8 @@ jobs:
         - uses: cpanato/gptscript-installer@main
         - uses: actions/checkout@v4
 
-
-        - uses: actions/cache@v4
-          id: cache
+        - uses: actions/cache/restore@v3
+          id: restore-cache
           with:
             path: $XDG_CACHE_HOME/gptscript
             key: ${{ runner.os }}-${{ hashFiles('*.gpt') }}
@@ -57,6 +56,12 @@ jobs:
         
         # debugging Warning: Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.
         - run: ls $XDG_CACHE_HOME/gptscript || true
+
+        - uses: actions/cache/save@v3
+          id: cache
+          with:
+            path: $XDG_CACHE_HOME/gptscript
+            key:  ${{ runner.os }}-${{ hashFiles('*.gpt') }}
 
         - name: Setup Pages
           uses: actions/configure-pages@v5
