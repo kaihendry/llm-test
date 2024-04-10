@@ -1,15 +1,48 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"sort"
 	"strings"
 	"time"
 )
+
+type JSONData struct {
+	Program struct {
+		ToolSet map[string]struct {
+			ModelName string `json:"modelName"`
+		} `json:"toolSet"`
+	} `json:"program"`
+	Output string `json:"output"`
+}
+
+func parseJSONFromFile(filename string) (output, modelName string, err error) {
+	// Read the file
+	input, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return "", "", err
+	}
+
+	var data JSONData
+	if err := json.Unmarshal(input, &data); err != nil {
+		return "", "", err
+	}
+
+	// Assuming there's only one model in the toolSet.
+	for _, tool := range data.Program.ToolSet {
+		modelName = tool.ModelName
+		break // Break after the first one since we just need one model name.
+	}
+
+	output = data.Output
+	return output, modelName, nil
+}
 
 type Questions struct {
 	AItests     []AItest
@@ -72,19 +105,20 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+
 		answer, err := ReadFileToString(fmt.Sprintf("../%d.answer", i))
 		if err != nil {
 			panic(err)
 		}
-		openaiAnswer, err := ReadFileToString(fmt.Sprintf("/tmp/%d.gpt.openai", i))
+		oanswer, omodelName, err := parseJSONFromFile(fmt.Sprintf("/tmp/dump.%d.gpt.openai", i))
 		if err != nil {
 			panic(err)
 		}
-		mistralAnswer, err := ReadFileToString(fmt.Sprintf("/tmp/%d.gpt.mistral", i))
+		manswer, mmodelName, err := parseJSONFromFile(fmt.Sprintf("/tmp/dump.%d.gpt.mistral", i))
 		if err != nil {
 			panic(err)
 		}
-		anthropicAnswer, err := ReadFileToString(fmt.Sprintf("/tmp/%d.gpt.anthropic", i))
+		aanswer, amodelName, err := parseJSONFromFile(fmt.Sprintf("/tmp/dump.%d.gpt.anthropic", i))
 		if err != nil {
 			panic(err)
 		}
@@ -115,29 +149,29 @@ func main() {
 			Question:   question,
 			Answers: Answers{
 				Answer{
-					Name:  "Sanity check with OpenAI on correct answer",
+					Name:  "Correct answer",
 					Value: answer,
 					Assertions: []Assertion{
 						sanityAssertion,
 					},
 				},
 				Answer{
-					Name:  "OpenAI",
-					Value: openaiAnswer,
+					Name:  omodelName,
+					Value: oanswer,
 					Assertions: []Assertion{
 						openAIAssertion,
 					},
 				},
 				Answer{
-					Name:  "Mistral",
-					Value: mistralAnswer,
+					Name:  mmodelName,
+					Value: manswer,
 					Assertions: []Assertion{
 						mistralAssertion,
 					},
 				},
 				Answer{
-					Name:  "Anthropic",
-					Value: anthropicAnswer,
+					Name:  amodelName,
+					Value: aanswer,
 					Assertions: []Assertion{
 						anthropicAssertion,
 					},
