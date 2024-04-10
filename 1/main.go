@@ -17,9 +17,9 @@ func main() {
 		slog.Debug("testing", "sentence", sentence)
 		err := isEndStart(sentence)
 		if err == nil {
-			slog.Info("ok", "sentence", sentence)
+			fmt.Println("ok")
 		} else {
-			slog.Error("not ok", "error", err, "sentence", sentence)
+			fmt.Printf("not ok - %s\n", err.Error())
 		}
 	}
 }

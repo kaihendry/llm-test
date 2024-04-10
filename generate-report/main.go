@@ -87,6 +87,11 @@ func main() {
 			panic(err)
 		}
 
+		openAIAssertion, err := parseTAP("Sanity check", fmt.Sprintf("/tmp/test.%d.gpt.openai", i))
+		if err != nil {
+			panic(err)
+		}
+
 		qs.AItests = append(qs.AItests, AItest{
 			// base name of the prompt file
 			PromptPath: path.Base(prompt),
@@ -102,6 +107,9 @@ func main() {
 				Answer{
 					Name:  "OpenAI",
 					Value: openaiAnswer,
+					Assertions: []Assertion{
+						openAIAssertion,
+					},
 				},
 				Answer{
 					Name:  "Mistral",

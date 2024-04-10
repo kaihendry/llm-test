@@ -6,7 +6,7 @@ on:
 env:
   XDG_CACHE_HOME: ${{ github.workspace }}/.cache
 
-# Needed for deploying to report to Github pages
+# Needed for deploying the report to Github pages
 permissions:
   contents: read
   pages: write
@@ -34,11 +34,13 @@ jobs:
           env:
             GPTSCRIPT_PROVIDER_API_MISTRAL_AI_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
             OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+            
         - shell: bash
           name: OpenAI
           run: ./openai.sh
           env:
             OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
         - shell: bash
           name: Anthropic
           run: ./anthropic.sh
