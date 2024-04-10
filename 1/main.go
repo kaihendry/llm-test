@@ -46,7 +46,7 @@ func isEndStart(sentence string) error {
 	for i := 0; i < len(words)-1; i++ {
 		slog.Debug("testing", "word", words[i], "last letter", string(words[i][len(words[i])-1]), "next word", words[i+1], "first letter", string(words[i+1][0]))
 		if words[i][len(words[i])-1] != words[i+1][0] {
-			return fmt.Errorf("last letter of %s is not the same as the first letter of %s", words[i], words[i+1])
+			return fmt.Errorf("last letter of %q is not the same as the first letter of %q", words[i], words[i+1])
 		}
 	}
 	return nil

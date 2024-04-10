@@ -87,7 +87,17 @@ func main() {
 			panic(err)
 		}
 
-		openAIAssertion, err := parseTAP("Sanity check", fmt.Sprintf("/tmp/test.%d.gpt.openai", i))
+		openAIAssertion, err := parseTAP("assert.gpt", fmt.Sprintf("/tmp/test.%d.gpt.openai", i))
+		if err != nil {
+			panic(err)
+		}
+
+		mistralAssertion, err := parseTAP("assert.gpt", fmt.Sprintf("/tmp/test.%d.gpt.mistral", i))
+		if err != nil {
+			panic(err)
+		}
+
+		anthropicAssertion, err := parseTAP("assert.gpt", fmt.Sprintf("/tmp/test.%d.gpt.anthropic", i))
 		if err != nil {
 			panic(err)
 		}
@@ -114,10 +124,16 @@ func main() {
 				Answer{
 					Name:  "Mistral",
 					Value: mistralAnswer,
+					Assertions: []Assertion{
+						mistralAssertion,
+					},
 				},
 				Answer{
 					Name:  "Anthropic",
 					Value: anthropicAnswer,
+					Assertions: []Assertion{
+						anthropicAssertion,
+					},
 				},
 			},
 		})
@@ -148,7 +164,7 @@ func parseTAP(name, filePath string) (a Assertion, err error) {
 		err = fmt.Errorf("%s: expected ok or not ok in %s", filePath, assertionText)
 		return
 	}
-	a.Description = strings.TrimSpace(testLine[1])
+	a.Description = strings.TrimSpace(strings.Join(testLine[1:], "-"))
 	a.Name = name
 	return
 }

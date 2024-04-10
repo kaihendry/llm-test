@@ -3,7 +3,7 @@ tools: sys.read
 args: query: The question asked
 args: answer: The answer to test (might be multiple answers)
 
-Evaluate whether the answer met the requirements of the {query}?
+Evaluate whether the {answer} met the requirements of the {query}?
 If {answer} fails the test, can you point out where it failed?
 
 Answer in a terse "Test Anything Protocol" formatted way with the number parsed out of the {query} filename's base.
