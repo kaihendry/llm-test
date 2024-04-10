@@ -24,6 +24,13 @@
 </style>
 </head>
 <body>
+<h1>Model Leaderboard</h1>
+<p>Context: <a href="https://www.linkedin.com/pulse/intelligence-tests-llms-fail-why-david-johnston/">Intelligence tests that LLMs fail and why</a></p>
+<ol>
+{{ range .Leaderboard }}
+   <li><strong>{{ .Model }}</strong>: {{ .Value }}</li>
+{{ end }}
+</ol>
 {{- range .AItests }}
 <h1 id="{{ .PromptPath }}"><a href="#{{ .PromptPath }}">{{ .PromptPath }}</a> question prompt</h1>
 <p>{{.Question}}</p>

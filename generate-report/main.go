@@ -6,13 +6,20 @@ import (
 	"io"
 	"os"
 	"path"
+	"sort"
 	"strings"
 	"time"
 )
 
 type Questions struct {
-	AItests   []AItest
-	Generated time.Time
+	AItests     []AItest
+	Generated   time.Time
+	Leaderboard []Score
+}
+
+type Score struct {
+	Model string
+	Value int
 }
 
 type AItest struct {
@@ -59,7 +66,7 @@ func main() {
 		Generated: time.Now(),
 	}
 
-	for i := 1; i <= 12; i++ {
+	for i := 1; i < 13; i++ {
 		prompt := fmt.Sprintf("../%d.gpt", i)
 		question, err := ReadFileToString(prompt)
 		if err != nil {
@@ -108,7 +115,7 @@ func main() {
 			Question:   question,
 			Answers: Answers{
 				Answer{
-					Name:  "Correct",
+					Name:  "Sanity check with OpenAI on correct answer",
 					Value: answer,
 					Assertions: []Assertion{
 						sanityAssertion,
@@ -138,6 +145,30 @@ func main() {
 			},
 		})
 	}
+
+	// Compute the scope of Sanity check, OpenAI, Mistral, and Anthropic
+	var score = map[string]int{}
+
+	for _, aiTest := range qs.AItests {
+		for _, answer := range aiTest.Answers {
+			for _, assertion := range answer.Assertions {
+				if assertion.Ok {
+					score[answer.Name]++
+				}
+			}
+		}
+	}
+
+	// concert the map to a sorted slice
+	for name, value := range score {
+		qs.Leaderboard = append(qs.Leaderboard, Score{
+			Model: name,
+			Value: value,
+		})
+	}
+	sort.Slice(qs.Leaderboard, func(i, j int) bool {
+		return qs.Leaderboard[i].Value > qs.Leaderboard[j].Value
+	})
 
 	err := generateReport(qs)
 	if err != nil {
