@@ -28,8 +28,6 @@ jobs:
             path: ${{ env.XDG_CACHE_HOME }}
             key: ${{ runner.os }}-${{ hashFiles('*.gpt') }}
 
-        - run: ls $XDG_CACHE_HOME/gptscript || true
-
         - shell: bash
           name: Mistral
           run: ./mistral.sh
@@ -47,16 +45,17 @@ jobs:
           env:
             ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
             OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
         - shell: bash
           name: Sanity test answers
-          run: cd test; ./test.sh | sh
+          run: ./test/test.sh
           env:
             OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         
         - name: Setup Pages
           uses: actions/configure-pages@v5
         - name: Generate report
-          run: mkdir "_site" && go run generate-report/main.go > _site/index.html
+          run: mkdir "_site" && cd generate-report && go run . > ../_site/index.html
         - name: Upload artifact
           uses: actions/upload-pages-artifact@v3
         - name: Deploy to GitHub Pages
