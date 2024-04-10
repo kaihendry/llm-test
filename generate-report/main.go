@@ -136,8 +136,8 @@ func parseTAP(name, filePath string) (a Assertion, err error) {
 	}
 	// split on -
 	testLine := strings.Split(assertionText, "-")
-	if len(testLine) != 2 {
-		err = fmt.Errorf("%s: expected 2 parts in %s, actual %d", filePath, assertionText, len(testLine))
+	if len(testLine) < 1 {
+		err = fmt.Errorf("%s: expected at least 1 part in %s, actual %d", filePath, assertionText, len(testLine))
 		return
 	}
 	if strings.HasPrefix(testLine[0], "ok") {
