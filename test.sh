@@ -7,12 +7,17 @@ test_model() {
     for i in $(ls -1 *.gpt | sort -h); do
         gptscript --dump-state "/tmp/dump.$i.${suffix}" --quiet=true --default-model "$model" $i >"/tmp/$i.${suffix}"
 
-        # Special handling for 1.gpt
-        if [[ "$i" == "1.gpt" ]]; then
+        case "$i" in
+        1.gpt)
             cat "/tmp/$i.${suffix}" | go run 1/main.go | tee "/tmp/test.${i}.${suffix}".go
-        fi
-
-        gptscript --quiet=true test/assert.gpt --name "Given the query $i, does the /tmp/$i.${suffix} meet it?" | tee "/tmp/test.$i.${suffix}".gpt4
+            ;;
+        8.gpt)
+            cat "/tmp/$i.${suffix}" | go run 8/main.go | tee "/tmp/test.${i}.${suffix}".go
+            ;;
+        *)
+            gptscript --quiet=true test/assert.gpt --name "Given the query $i, does the /tmp/$i.${suffix} meet it?" | tee "/tmp/test.$i.${suffix}".gpt4
+            ;;
+        esac
     done
 }
 
