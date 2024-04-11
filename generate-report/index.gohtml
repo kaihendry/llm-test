@@ -21,6 +21,43 @@
     margin: 10px 0;
     background-color: rgba(244, 67, 54, 0.2); /* Light red background */
 }
+
+.flag-link {
+    float: right;
+    font-size: 20px; /* Makes the flag icon larger */
+    color: #D32F2F; /* Sets a vibrant color */
+    padding: 5px 10px; /* Adds space around the flag icon */
+    margin: 0 0 10px 10px; /* Adds some space to separate from other elements */
+    background-color: #FFEBEE; /* A light red background to highlight */
+    border: 1px solid #FFCDD2; /* A subtle border */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* A slight shadow for depth */
+    border-radius: 4px; /* Rounded corners */
+    text-decoration: none; /* Removes underline from the link */
+}
+
+.flag-link:hover {
+    background-color: #FFCDD2; /* Slightly darker background on hover */
+    color: #B71C1C; /* Darker color on hover */
+    cursor: pointer; /* Changes cursor to indicate it's clickable */
+}
+.flag-link a {
+    display: inline-block; /* Align better with the text and allow for padding */
+    text-decoration: none; /* Removes the underline */
+    font-size: 24px; /* Adjust size as needed */
+    color: #D32F2F; /* Red color for the flag to stand out */
+    background: none; /* Removes any background */
+    border: none; /* Removes the border */
+    padding: 0; /* Removes padding */
+    margin: 0 10px; /* Adds some margin to the right */
+    cursor: pointer; /* Indicates the link is clickable */
+    vertical-align: middle; /* Aligns with text vertically */
+}
+
+.flag-link a:hover {
+    color: #B71C1C; /* Darker red on hover for visual feedback */
+}
+
+
 </style>
 </head>
 <body>
@@ -45,6 +82,8 @@
 {{- else }}
 <div class="notok">
 {{- end }}
+<!-- flag assertion -->
+<p class="flag-link"><a href="mailto:hendry+{{ .Name }}@iki.fi">🚩</a></p>
 <p>Test type: {{ .Name }}</p>
 <p>Ok: {{ .Ok }}</p>
 <p>Description: {{ .Description }}</p>
