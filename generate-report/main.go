@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
+
+	"log/slog"
 )
 
 type JSONData struct {
@@ -24,7 +26,7 @@ type JSONData struct {
 
 func parseJSONFromFile(filename string) (output, modelName string, err error) {
 	// Read the file
-	input, err := ioutil.ReadFile(filename)
+	input, err := os.ReadFile(filename)
 	if err != nil {
 		return "", "", err
 	}
@@ -95,6 +97,7 @@ func ReadFileToString(filePath string) (string, error) {
 }
 
 func main() {
+	slog.Info("Generating report")
 	qs := Questions{
 		Generated: time.Now(),
 	}
@@ -123,22 +126,22 @@ func main() {
 			panic(err)
 		}
 
-		sanityAssertion, err := parseTAP("Sanity check", fmt.Sprintf("/tmp/test.%d.answer", i))
+		sanityAssertion, err := parseTAP(fmt.Sprintf("/tmp/test.%d.answer", i))
 		if err != nil {
 			panic(err)
 		}
 
-		openAIAssertion, err := parseTAP("assert.gpt", fmt.Sprintf("/tmp/test.%d.gpt.openai", i))
+		openAIAssertion, err := parseTAP(fmt.Sprintf("/tmp/test.%d.gpt.openai", i))
 		if err != nil {
 			panic(err)
 		}
 
-		mistralAssertion, err := parseTAP("assert.gpt", fmt.Sprintf("/tmp/test.%d.gpt.mistral", i))
+		mistralAssertion, err := parseTAP(fmt.Sprintf("/tmp/test.%d.gpt.mistral", i))
 		if err != nil {
 			panic(err)
 		}
 
-		anthropicAssertion, err := parseTAP("assert.gpt", fmt.Sprintf("/tmp/test.%d.gpt.anthropic", i))
+		anthropicAssertion, err := parseTAP(fmt.Sprintf("/tmp/test.%d.gpt.anthropic", i))
 		if err != nil {
 			panic(err)
 		}
@@ -149,32 +152,24 @@ func main() {
 			Question:   question,
 			Answers: Answers{
 				Answer{
-					Name:  "Correct answer",
-					Value: answer,
-					Assertions: []Assertion{
-						sanityAssertion,
-					},
+					Name:       "Correct answer",
+					Value:      answer,
+					Assertions: sanityAssertion,
 				},
 				Answer{
-					Name:  omodelName,
-					Value: oanswer,
-					Assertions: []Assertion{
-						openAIAssertion,
-					},
+					Name:       omodelName,
+					Value:      oanswer,
+					Assertions: openAIAssertion,
 				},
 				Answer{
-					Name:  mmodelName,
-					Value: manswer,
-					Assertions: []Assertion{
-						mistralAssertion,
-					},
+					Name:       mmodelName,
+					Value:      manswer,
+					Assertions: mistralAssertion,
 				},
 				Answer{
-					Name:  amodelName,
-					Value: aanswer,
-					Assertions: []Assertion{
-						anthropicAssertion,
-					},
+					Name:       amodelName,
+					Value:      aanswer,
+					Assertions: anthropicAssertion,
 				},
 			},
 		})
@@ -210,27 +205,46 @@ func main() {
 	}
 }
 
-func parseTAP(name, filePath string) (a Assertion, err error) {
-	assertionText, err := ReadFileToString(filePath)
+func parseTAP(filePath string) (results []Assertion, err error) {
+
+	files, err := filepath.Glob(filePath + "*")
 	if err != nil {
 		return
 	}
-	// split on -
-	testLine := strings.Split(assertionText, "-")
-	if len(testLine) < 1 {
-		err = fmt.Errorf("%s: expected at least 1 part in %s, actual %d", filePath, assertionText, len(testLine))
+
+	slog.Info("test results", "filePath", filePath, "files", files)
+
+	if len(files) == 0 {
+		err = fmt.Errorf("no test results found for %s", filePath)
 		return
 	}
-	if strings.HasPrefix(testLine[0], "ok") {
-		a.Ok = true
-	} else if strings.HasPrefix(testLine[0], "not ok") {
-		a.Ok = false
-	} else {
-		err = fmt.Errorf("%s: expected ok or not ok in %s", filePath, assertionText)
-		return
+
+	// range over files
+	for _, file := range files {
+		var a Assertion
+		a.Name = filepath.Base(file)
+
+		assertionText, err := ReadFileToString(file)
+		if err != nil {
+			break
+		}
+		// split on -
+		testLine := strings.Split(assertionText, "-")
+		if len(testLine) < 1 {
+			err = fmt.Errorf("%s: expected at least 1 part in %s, actual %d", filePath, assertionText, len(testLine))
+			break
+		}
+		if strings.HasPrefix(testLine[0], "ok") {
+			a.Ok = true
+		} else if strings.HasPrefix(testLine[0], "not ok") {
+			a.Ok = false
+		} else {
+			err = fmt.Errorf("%s: expected ok or not ok in %s", filePath, assertionText)
+			break
+		}
+		a.Description = strings.TrimSpace(strings.Join(testLine[1:], "-"))
+		results = append(results, a)
 	}
-	a.Description = strings.TrimSpace(strings.Join(testLine[1:], "-"))
-	a.Name = name
 	return
 }
 
