@@ -14,6 +14,9 @@ test_model() {
         2.gpt)
             cat "/tmp/$i.${suffix}" | go run 2/main.go | tee "/tmp/test.${i}.${suffix}".go
             ;;
+        3.gpt)
+            cat "/tmp/$i.${suffix}" | go run 3/main.go | tee "/tmp/test.${i}.${suffix}".go
+            ;;
         8.gpt)
             cat "/tmp/$i.${suffix}" | go run 8/main.go | tee "/tmp/test.${i}.${suffix}".go
             ;;
