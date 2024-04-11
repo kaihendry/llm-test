@@ -6,24 +6,12 @@ test_model() {
 
     for i in $(ls -1 *.gpt | sort -h); do
         gptscript --dump-state "/tmp/dump.$i.${suffix}" --quiet=true --default-model "$model" $i >"/tmp/$i.${suffix}"
-        echo "Testing $i with $model"
-        case "$i" in
-        1.gpt)
-            cat "/tmp/$i.${suffix}" | go run 1/main.go | tee "/tmp/test.${i}.${suffix}".go
-            ;;
-        2.gpt)
-            cat "/tmp/$i.${suffix}" | go run 2/main.go | tee "/tmp/test.${i}.${suffix}".go
-            ;;
-        3.gpt)
-            cat "/tmp/$i.${suffix}" | go run 3/main.go | tee "/tmp/test.${i}.${suffix}".go
-            ;;
-        8.gpt)
-            cat "/tmp/$i.${suffix}" | go run 8/main.go | tee "/tmp/test.${i}.${suffix}".go
-            ;;
-        *)
+        testNum=$(basename $i .gpt)
+        if test -f $testNum/main.go; then
+            cat "/tmp/$i.${suffix}" | go run ${testNum}/main.go | tee "/tmp/test.${i}.${suffix}".go
+        else
             gptscript --quiet=true test/assert.gpt --name "Given the query $i, does the /tmp/$i.${suffix} meet it?" | tee "/tmp/test.$i.${suffix}".gpt4
-            ;;
-        esac
+        fi
     done
 }
 
