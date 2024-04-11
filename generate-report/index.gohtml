@@ -77,6 +77,12 @@
 <h3>{{.Name}}</h3>
 <blockquote>{{.Value}}</blockquote>
 {{- range .Assertions }}
+
+<!-- if name ends in .answer we add details -->
+{{- if eq (ext .Name) ".answer" }}
+<details>
+  <summary>assert.gpt check on known correct answer</summary>
+{{- end}}
 {{- if .Ok }}
 <div class="ok">
 {{- else }}
@@ -87,6 +93,11 @@
 <p>Test type: {{ .Name }}</p>
 <p>Ok: {{ .Ok }}</p>
 <p>Description: {{ .Description }}</p>
+
+{{- if eq (ext .Name) ".answer" }}
+</details>
+{{- end}}
+
 </div>
 {{- end}}
 {{- end}}

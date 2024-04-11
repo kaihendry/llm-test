@@ -188,8 +188,10 @@ func main() {
 		}
 	}
 
-	// concert the map to a sorted slice
 	for name, value := range score {
+		if name == "Correct answer" {
+			continue
+		}
 		qs.Leaderboard = append(qs.Leaderboard, Score{
 			Model: name,
 			Value: value,
@@ -255,7 +257,9 @@ func generateReport(qs Questions) error {
 	if _, err := os.Stat(tmplFile); os.IsNotExist(err) {
 		return err
 	}
-	t := template.Must(template.New(tmplFile).ParseFiles(tmplFile))
+	t := template.Must(template.New(tmplFile).Funcs(template.FuncMap{
+		"ext": filepath.Ext,
+	}).ParseFiles(tmplFile))
 	err := t.Execute(os.Stdout, qs)
 	return err
 }
