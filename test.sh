@@ -26,3 +26,6 @@ test_model "mistral-large-latest from https://api.mistral.ai/v1" "mistral"
 # For Anthropics
 gptscript --list-models "github.com/gptscript-ai/anthropic-provider"
 test_model "claude-3-haiku-20240307 from github.com/gptscript-ai/anthropic-provider" "anthropic"
+
+# https://endpoints.ai.cloud.ovh.net/
+test_model "Mistral-7B-Instruct-v0.2 from https://mistral-7b-instruct-v02.endpoints.kepler.ai.cloud.ovh.net/api/openai_compat/v1" "ovh"

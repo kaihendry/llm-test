@@ -113,102 +113,82 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		oanswer, omodelName, err := parseJSONFromFile(fmt.Sprintf("/tmp/dump.%d.gpt.openai", i))
-		if err != nil {
-			panic(err)
-		}
-		manswer, mmodelName, err := parseJSONFromFile(fmt.Sprintf("/tmp/dump.%d.gpt.mistral", i))
-		if err != nil {
-			panic(err)
-		}
-		aanswer, amodelName, err := parseJSONFromFile(fmt.Sprintf("/tmp/dump.%d.gpt.anthropic", i))
-		if err != nil {
-			panic(err)
-		}
-
-		sanityAssertion, err := parseTAP(fmt.Sprintf("/tmp/test.%d.answer", i))
-		if err != nil {
-			panic(err)
-		}
-
-		openAIAssertion, err := parseTAP(fmt.Sprintf("/tmp/test.%d.gpt.openai", i))
-		if err != nil {
-			panic(err)
-		}
-
-		mistralAssertion, err := parseTAP(fmt.Sprintf("/tmp/test.%d.gpt.mistral", i))
-		if err != nil {
-			panic(err)
-		}
-
-		anthropicAssertion, err := parseTAP(fmt.Sprintf("/tmp/test.%d.gpt.anthropic", i))
-		if err != nil {
-			panic(err)
-		}
-
 		qs.AItests = append(qs.AItests, AItest{
-			// base name of the prompt file
 			PromptPath: path.Base(prompt),
 			Question:   question,
 			Answers: Answers{
 				Answer{
-					Name:       "Correct answer",
-					Value:      answer,
-					Assertions: sanityAssertion,
+					Name:  "Correct answer",
+					Value: answer,
 				},
-				Answer{
-					Name:       omodelName,
-					Value:      oanswer,
-					Assertions: openAIAssertion,
-				},
-				Answer{
-					Name:       mmodelName,
-					Value:      manswer,
-					Assertions: mistralAssertion,
-				},
-				Answer{
-					Name:       amodelName,
-					Value:      aanswer,
-					Assertions: anthropicAssertion,
-				},
+				// Answer{
+				// 	Name:       omodelName,
+				// 	Value:      oanswer,
+				// 	Assertions: openAIAssertion,
+				// },
+				// Answer{
+				// 	Name:       mmodelName,
+				// 	Value:      manswer,
+				// 	Assertions: mistralAssertion,
+				// },
+				// Answer{
+				// 	Name:       amodelName,
+				// 	Value:      aanswer,
+				// 	Assertions: anthropicAssertion,
+				// },
 			},
 		})
-	}
+		modelTestPaths, err := filepath.Glob(fmt.Sprintf("/tmp/test.%d.gpt", i) + "*")
+		if err != nil {
+			panic(err)
+		}
+		for _, modelTestPath := range modelTestPaths {
+			qs.AItests[i-1].Answers = append(qs.AItests[i-1].Answers, Answer{
+				Name: modelName(modelTestPath),
+			})
+		}
 
-	// Compute the scope of Sanity check, OpenAI, Mistral, and Anthropic
-	var score = map[string]int{}
+		// Compute the scope of Sanity check, OpenAI, Mistral, and Anthropic
+		var score = map[string]int{}
 
-	for _, aiTest := range qs.AItests {
-		for _, answer := range aiTest.Answers {
-			for _, assertion := range answer.Assertions {
-				if assertion.Ok {
-					score[answer.Name]++
+		for _, aiTest := range qs.AItests {
+			for _, answer := range aiTest.Answers {
+				for _, assertion := range answer.Assertions {
+					if assertion.Ok {
+						score[answer.Name]++
+					}
 				}
 			}
 		}
-	}
 
-	for name, value := range score {
-		if name == "Correct answer" {
-			continue
+		for name, value := range score {
+			if name == "Correct answer" {
+				continue
+			}
+			qs.Leaderboard = append(qs.Leaderboard, Score{
+				Model: name,
+				Value: value,
+			})
 		}
-		qs.Leaderboard = append(qs.Leaderboard, Score{
-			Model: name,
-			Value: value,
+		sort.Slice(qs.Leaderboard, func(i, j int) bool {
+			return qs.Leaderboard[i].Value > qs.Leaderboard[j].Value
 		})
-	}
-	sort.Slice(qs.Leaderboard, func(i, j int) bool {
-		return qs.Leaderboard[i].Value > qs.Leaderboard[j].Value
-	})
 
-	err := generateReport(qs)
-	if err != nil {
-		panic(err)
+		err = generateReport(qs)
+		if err != nil {
+			panic(err)
+		}
 	}
+}
+
+func modelName(answerPath string) string {
+	answerParts := strings.Split(answerPath, ".")
+	return answerParts[3]
 }
 
 func parseTAP(filePath string) (results []Assertion, err error) {
 
+	slog.Info("parseTAP", "filePath", filePath)
 	files, err := filepath.Glob(filePath + "*")
 	if err != nil {
 		return
