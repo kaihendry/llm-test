@@ -6,6 +6,17 @@
 <link rel="stylesheet" href="https://newcss.net/lite.css">
 <title>Large Language Model Test</title>
 <style>
+   .question {
+        font-size: 1.2em; /* Larger font size for better visibility */
+        color: #1A237E; /* Dark blue color for emphasis */
+        background-color: #E8EAF6; /* Light blue background for contrast */
+        border-left: 4px solid #3F51B5; /* Solid blue border on the left for attention */
+        padding: 10px 20px; /* Padding for a better text display */
+        margin: 20px 0; /* Margin to separate from other content */
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.15); /* Subtle shadow for depth */
+    }
+
+
 .ok {
     border: 2px solid #4CAF50; /* Green border */
     color: #4CAF50; /* Green text to signify success */
@@ -71,7 +82,7 @@
 </ol>
 {{- range .AItests }}
 <h1 id="{{ .PromptPath }}"><a href="#{{ .PromptPath }}">{{ .PromptPath }}</a> question prompt</h1>
-<p>{{.Question}}</p>
+<p class="question">{{.Question}}</p>
 <h1>Answers</h1>
 {{- range .Answers}}
 <h3>{{.Name}}</h3>

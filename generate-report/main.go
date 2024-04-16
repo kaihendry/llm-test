@@ -121,21 +121,6 @@ func main() {
 					Name:  "Correct answer",
 					Value: answer,
 				},
-				// Answer{
-				// 	Name:       omodelName,
-				// 	Value:      oanswer,
-				// 	Assertions: openAIAssertion,
-				// },
-				// Answer{
-				// 	Name:       mmodelName,
-				// 	Value:      manswer,
-				// 	Assertions: mistralAssertion,
-				// },
-				// Answer{
-				// 	Name:       amodelName,
-				// 	Value:      aanswer,
-				// 	Assertions: anthropicAssertion,
-				// },
 			},
 		})
 		modelTestPaths, err := filepath.Glob(fmt.Sprintf("/tmp/test.%d.gpt", i) + "*")
@@ -143,90 +128,91 @@ func main() {
 			panic(err)
 		}
 		for _, modelTestPath := range modelTestPaths {
-			qs.AItests[i-1].Answers = append(qs.AItests[i-1].Answers, Answer{
-				Name: modelName(modelTestPath),
-			})
+			suffix := strings.Split(modelTestPath, ".")[3]
+			slog.Info("fetching answer", "modelTestPath", modelTestPath, "suffix", suffix)
+			qs.AItests[i-1].Answers = append(qs.AItests[i-1].Answers, fetchAnswer(modelTestPath))
 		}
+	}
 
-		// Compute the scope of Sanity check, OpenAI, Mistral, and Anthropic
-		var score = map[string]int{}
+	slog.Info("Computing leaderboard")
 
-		for _, aiTest := range qs.AItests {
-			for _, answer := range aiTest.Answers {
-				for _, assertion := range answer.Assertions {
-					if assertion.Ok {
-						score[answer.Name]++
+	var score = map[string]int{}
+
+	for _, aiTest := range qs.AItests {
+		for _, answer := range aiTest.Answers {
+			for _, assertion := range answer.Assertions {
+				if assertion.Ok {
+					score[answer.Name]++
+				} else {
+					if _, ok := score[answer.Name]; !ok {
+						score[answer.Name] = 0
 					}
 				}
 			}
 		}
+	}
 
-		for name, value := range score {
-			if name == "Correct answer" {
-				continue
-			}
-			qs.Leaderboard = append(qs.Leaderboard, Score{
-				Model: name,
-				Value: value,
-			})
+	for name, value := range score {
+		if name == "Correct answer" {
+			continue
 		}
-		sort.Slice(qs.Leaderboard, func(i, j int) bool {
-			return qs.Leaderboard[i].Value > qs.Leaderboard[j].Value
+		qs.Leaderboard = append(qs.Leaderboard, Score{
+			Model: name,
+			Value: value,
 		})
+	}
+	sort.Slice(qs.Leaderboard, func(i, j int) bool {
+		return qs.Leaderboard[i].Value > qs.Leaderboard[j].Value
+	})
 
-		err = generateReport(qs)
-		if err != nil {
-			panic(err)
-		}
+	err := generateReport(qs)
+	if err != nil {
+		panic(err)
 	}
 }
 
-func modelName(answerPath string) string {
-	answerParts := strings.Split(answerPath, ".")
-	return answerParts[3]
+func fetchAnswer(modelTestPath string) Answer {
+	parts := strings.Split(modelTestPath, ".")
+	dumpPath := fmt.Sprintf("%s.%s.%s.%s", "/tmp/dump", parts[1], parts[2], parts[3])
+	slog.Info("fetching answer", "modelTestPath", modelTestPath, "dumpPath", dumpPath)
+	answer, modelName, err := parseJSONFromFile(dumpPath)
+	if err != nil {
+		panic(err)
+	}
+
+	assertion, err := parseTAP(modelTestPath)
+	if err != nil {
+		panic(err)
+	}
+
+	return Answer{
+		Name:       modelName,
+		Value:      answer,
+		Assertions: []Assertion{assertion},
+	}
 }
 
-func parseTAP(filePath string) (results []Assertion, err error) {
-
-	slog.Info("parseTAP", "filePath", filePath)
-	files, err := filepath.Glob(filePath + "*")
+func parseTAP(filePath string) (a Assertion, err error) {
+	a.Name = filepath.Base(filePath)
+	assertionText, err := ReadFileToString(filePath)
 	if err != nil {
 		return
 	}
-
-	slog.Info("test results", "filePath", filePath, "files", files)
-
-	if len(files) == 0 {
-		err = fmt.Errorf("no test results found for %s", filePath)
+	// split on -
+	testLine := strings.Split(assertionText, "-")
+	if len(testLine) < 1 {
+		err = fmt.Errorf("%s: expected at least 1 part in %s, actual %d", filePath, assertionText, len(testLine))
 		return
 	}
-
-	// range over files
-	for _, file := range files {
-		var a Assertion
-		a.Name = filepath.Base(file)
-
-		assertionText, err := ReadFileToString(file)
-		if err != nil {
-			break
-		}
-		// split on -
-		testLine := strings.Split(assertionText, "-")
-		if len(testLine) < 1 {
-			err = fmt.Errorf("%s: expected at least 1 part in %s, actual %d", filePath, assertionText, len(testLine))
-			break
-		}
-		if strings.HasPrefix(testLine[0], "ok") {
-			a.Ok = true
-		} else if strings.HasPrefix(testLine[0], "not ok") {
-			a.Ok = false
-		} else {
-			err = fmt.Errorf("%s: expected ok or not ok in %s", filePath, assertionText)
-			break
-		}
-		a.Description = strings.TrimSpace(strings.Join(testLine[1:], "-"))
-		results = append(results, a)
+	if strings.HasPrefix(testLine[0], "ok") {
+		a.Ok = true
+	} else if strings.HasPrefix(testLine[0], "not ok") {
+		a.Ok = false
+	} else {
+		err = fmt.Errorf("%s: expected ok or not ok in %s", filePath, assertionText)
+		return
 	}
+	a.Description = strings.TrimSpace(strings.Join(testLine[1:], "-"))
 	return
 }
 
