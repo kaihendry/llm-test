@@ -47,7 +47,7 @@ jobs:
         - name: Generate report
           run: mkdir "_site" && cd generate-report && go run . > ../_site/index.html
         - name: Upload artifact
-          uses: actions/upload-pages-artifact@v3
+          uses: actions/upload-pages-artifact@v4
         - name: Deploy to GitHub Pages
           id: deployment
           uses: actions/deploy-pages@v4
